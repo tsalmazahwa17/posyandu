@@ -1,0 +1,58 @@
+{
+  "name": "posyandu-aster",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "doctor": "node scripts/doctor.mjs",
+    "dev": "node scripts/dev.mjs",
+    "prebuild": "node scripts/check-routes.mjs && node scripts/generate-prisma.mjs",
+    "build": "next build",
+    "start": "next start",
+    "postinstall": "node scripts/generate-prisma.mjs --optional",
+    "lint": "eslint",
+    "db:generate": "node scripts/generate-prisma.mjs",
+    "db:migrate": "node scripts/run-prisma-command.mjs migrate deploy",
+    "db:seed": "tsx prisma/seed-production.ts",
+    "typecheck": "tsc --noEmit",
+    "routes:check": "node scripts/check-routes.mjs",
+    "verify": "npm run doctor && npm run routes:check && npm run lint && npm run typecheck && npm run build",
+    "setup": "npm run supabase:bootstrap",
+    "db:studio": "node scripts/run-prisma-command.mjs studio",
+    "supabase:check": "node scripts/check-supabase.mjs",
+    "supabase:bootstrap": "node scripts/bootstrap-supabase.mjs",
+    "cloud:audit": "node scripts/audit-cloud-only.mjs",
+    "health:check": "node scripts/check-health.mjs",
+    "db:seed:demo": "node scripts/run-prisma-command.mjs db seed",
+    "db:migrate:local-data": "node scripts/migrate-local-postgres-data.mjs",
+    "supabase:bootstrap:from-local": "node scripts/bootstrap-supabase-from-local.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcrypt": "^6.0.0",
+    "clsx": "^2.1.1",
+    "jose": "^6.2.4",
+    "lucide-react": "^1.25.0",
+    "next": "16.2.10",
+    "prisma": "^6.19.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "recharts": "^3.10.0",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.1",
+    "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

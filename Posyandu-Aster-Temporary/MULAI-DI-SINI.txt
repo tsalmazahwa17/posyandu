@@ -1,0 +1,38 @@
+POSYANDU ASTER — MULAI DI SINI
+==============================
+
+1. Buat project Supabase kosong.
+2. Ekstrak project ini, lalu buka SETUP-SUPABASE-STEP-BY-STEP.md.
+3. Salin .env.example menjadi .env.local dan isi semua nilai wajib.
+4. Jalankan salah satu jalur:
+
+   PROJECT BARU:
+   npm ci
+   npm run supabase:bootstrap
+
+   MIGRASI POSTGRESQL LAMA:
+   isi OLD_DATABASE_URL, instal pg_dump/psql, lalu:
+   npm ci
+   npm run supabase:bootstrap:from-local
+
+   Setelah selesai:
+   npm run dev
+
+5. Buka http://localhost:3000 dan login dengan akun Admin/Kader dari .env.local.
+6. Ganti password pada login pertama, lalu edit Profil Posyandu.
+7. Uji realtime memakai dua browser/perangkat.
+8. Untuk production, masukkan environment yang sama ke Vercel dan deploy.
+
+DATABASE/TABEL/Kolom:
+- prisma/schema.prisma
+- prisma/migrations/
+- supabase/FULL-DATABASE-REFERENCE.sql
+- docs/DATABASE-DICTIONARY.md
+
+PANDUAN LENGKAP:
+- SETUP-SUPABASE-STEP-BY-STEP.md
+
+CATATAN:
+- Jangan commit .env.local.
+- Jangan jalankan db:seed:demo pada database production.
+- Jangan menjalankan SQL manual bila migration Prisma sudah diterapkan.

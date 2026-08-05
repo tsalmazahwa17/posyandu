@@ -1,0 +1,33 @@
+POSYANDU ASTER — SUPABASE REALTIME PRODUCTION
+
+REVISI UTAMA
+- Database operasional: Supabase Postgres.
+- Runtime: Transaction Pooler.
+- Migration/seed/Studio: Session Pooler atau direct connection.
+- Realtime: trigger database -> Broadcast metadata invalidasi -> refetch API/server.
+- Storage: media publik di bucket public; arsip di bucket private + signed URL.
+- Security: RLS aktif; grants anon/authenticated dicabut dari tabel aplikasi.
+- Rate limit: Supabase Postgres, bukan memori proses.
+- Cache: halaman data dynamic/no-store.
+- Seed production: tanpa data kesehatan/konten contoh.
+- Migrasi PostgreSQL lokal: npm run supabase:bootstrap:from-local.
+- Grafik: general + per individu; tautan sasaran otomatis memilih nama.
+
+PEMERIKSAAN STATIS
+- 159 file TypeScript/TSX: syntax valid.
+- 18 halaman dan 29 API route: tidak ada konflik.
+- Script MJS: syntax valid.
+- Cloud-only audit: lulus.
+- Tidak ada file source dasar yang dihapus.
+
+BELUM DAPAT DIKLAIM SEBAGAI LIVE-TESTED
+- Koneksi ke project Supabase pengguna belum diuji karena kredensial tidak diberikan.
+- Build dependency penuh tidak selesai di lingkungan penyusunan karena akses registry jaringan timeout.
+
+JALANKAN PADA KOMPUTER/CI PENGGUNA
+1. npm ci
+2. isi .env.local
+3. npm run supabase:bootstrap
+4. npm run dev
+5. uji dua browser/perangkat
+6. npm run build

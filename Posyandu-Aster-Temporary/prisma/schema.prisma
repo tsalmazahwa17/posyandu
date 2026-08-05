@@ -1,0 +1,640 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+//////////////////////////////////////////////////////
+// ENUM
+//////////////////////////////////////////////////////
+
+enum Role {
+  ADMIN
+  KADER
+  MASYARAKAT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum AttendanceMethod {
+  QR
+  MANUAL
+}
+
+enum AttendanceStatus {
+  HADIR
+  TIDAK_HADIR
+}
+
+enum SessionStatus {
+  OPEN
+  CLOSED
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}
+
+enum PasswordResetStatus {
+  PENDING
+  RESOLVED
+  REJECTED
+}
+
+//////////////////////////////////////////////////////
+// USER
+//////////////////////////////////////////////////////
+
+model User {
+  id        Int      @id @default(autoincrement()) // Diubah ke Int
+  fullName  String   @map("full_name") @db.VarChar(100)
+  email     String   @unique @db.VarChar(150)
+  password  String   @db.VarChar(255)
+  role      Role     @default(KADER)
+  isActive  Boolean  @default(true) @map("is_active")
+
+  // Wajib ganti password saat login pertama kali / setelah direset admin
+  mustChangePassword Boolean   @default(true) @map("must_change_password")
+  passwordChangedAt  DateTime? @map("password_changed_at")
+
+  // Hubungan ke Visitor (opsional, untuk akun MASYARAKAT / sasaran posyandu)
+  visitorId Int?     @unique @map("visitor_id")
+  visitor   Visitor? @relation(fields: [visitorId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  archives              Archive[]
+  documentations        Documentation[]
+  recordedBalita        MonitoringBalita[]
+  recordedIbuHamil      MonitoringIbuHamil[]
+  recordedRemaja        MonitoringRemaja[]
+  recordedUsiaProduktif MonitoringUsiaProduktif[]
+  recordedLansia        MonitoringLansia[]
+  recordedAttendances   Attendance[]
+  news                  News[]
+  passwordResetRequests PasswordResetRequest[]
+
+  // Sesi Posyandu (QR Absensi) yang dibuka oleh Kader/Admin
+  openedSessions        PosyanduSession[]
+
+  @@map("users")
+}
+
+//////////////////////////////////////////////////////
+// PASSWORD RESET REQUEST
+//////////////////////////////////////////////////////
+
+model PasswordResetRequest {
+  id          Int                 @id @default(autoincrement())
+  userId      Int?                @map("user_id")
+  email       String              @db.VarChar(150)
+  status      PasswordResetStatus @default(PENDING)
+  requestedAt DateTime            @default(now()) @map("requested_at")
+  handledAt   DateTime?           @map("handled_at")
+  notes       String?
+
+  user User? @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+
+  @@index([email, requestedAt])
+  @@index([status, requestedAt])
+  @@map("password_reset_requests")
+}
+
+//////////////////////////////////////////////////////
+// CATEGORY (VISITOR)
+//////////////////////////////////////////////////////
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  visitors Visitor[]
+
+  @@map("categories")
+}
+
+//////////////////////////////////////////////////////
+// ARCHIVE CATEGORY
+//////////////////////////////////////////////////////
+
+model ArchiveCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  archives Archive[]
+
+  @@map("archive_categories")
+}
+
+//////////////////////////////////////////////////////
+// VISITOR
+//////////////////////////////////////////////////////
+
+model Visitor {
+  id         Int      @id @default(autoincrement()) // Diubah ke Int
+  categoryId Int      @map("category_id")
+  nik        String?  @unique @db.VarChar(20)
+  fullName   String   @map("full_name") @db.VarChar(100)
+  gender     Gender
+  birthPlace String?  @map("birth_place") @db.VarChar(100)
+  birthDate  DateTime @map("birth_date") @db.Date
+  phone      String?  @db.VarChar(20)
+  address    String?
+  qrCode     String?  @unique @map("qr_code") @db.VarChar(255)
+  photo      String?  @db.VarChar(255)
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relasi opsional ke User (untuk akun login masyarakat)
+  user User?
+
+  // Relasi
+  category                Category                  @relation(fields: [categoryId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  monitoringBalita        MonitoringBalita[]
+  monitoringIbuHamil      MonitoringIbuHamil[]
+  monitoringRemaja        MonitoringRemaja[]
+  monitoringUsiaProduktif MonitoringUsiaProduktif[]
+  monitoringLansia        MonitoringLansia[]
+  attendances             Attendance[]
+
+  @@index([fullName])
+  @@index([categoryId, fullName])
+  @@map("visitors")
+}
+
+//////////////////////////////////////////////////////
+// MONITORING BALITA
+//////////////////////////////////////////////////////
+
+model MonitoringBalita {
+  id                Int      @id @default(autoincrement()) // Diubah ke Int
+  visitorId         Int      @map("visitor_id") // Diubah ke Int
+  recordedBy        Int      @map("recorded_by") // Diubah ke Int
+  examinationDate   DateTime @map("examination_date") @db.Date
+  monthNumber       Int      @map("month_number")
+  ageMonth          Int      @map("age_month")
+  weight            Decimal  @db.Decimal(5, 2)
+  height            Decimal  @db.Decimal(5, 2)
+  headCircumference Decimal? @map("head_circumference") @db.Decimal(5, 2)
+  nutritionalStatus String?  @map("nutritional_status") @db.VarChar(30)
+  immunization      String?  @db.VarChar(100)
+  vitamin           String?  @db.VarChar(50)
+  kpspResult        String?  @map("kpsp_result") @db.VarChar(100)
+  notes             String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  visitor  Visitor @relation(fields: [visitorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  recorder User    @relation(fields: [recordedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+
+  @@unique([visitorId, examinationDate])
+  @@index([examinationDate])
+  @@index([recordedBy])
+  @@map("monitoring_balita")
+}
+
+//////////////////////////////////////////////////////
+// MONITORING IBU HAMIL
+//////////////////////////////////////////////////////
+
+model MonitoringIbuHamil {
+  id              Int       @id @default(autoincrement()) // Diubah ke Int
+  visitorId       Int       @map("visitor_id") // Diubah ke Int
+  recordedBy      Int       @map("recorded_by") // Diubah ke Int
+  examinationDate DateTime  @map("examination_date") @db.Date
+  gestationalAge  Int?      @map("gestational_age")
+  weight          Decimal?  @db.Decimal(5, 2)
+  systolicBP      Int?      @map("systolic_bp")
+  diastolicBP     Int?      @map("diastolic_bp")
+  hb              Decimal?  @db.Decimal(4, 2)
+  lila            Decimal?  @db.Decimal(5, 2)
+  hpht            DateTime? @db.Date
+  hpl             DateTime? @db.Date
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  visitor  Visitor @relation(fields: [visitorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  recorder User    @relation(fields: [recordedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+
+  @@unique([visitorId, examinationDate])
+  @@index([visitorId, gestationalAge])
+  @@index([examinationDate])
+  @@index([recordedBy])
+  @@map("monitoring_ibu_hamil")
+}
+
+//////////////////////////////////////////////////////
+// MONITORING REMAJA
+//////////////////////////////////////////////////////
+
+model MonitoringRemaja {
+  id               Int      @id @default(autoincrement()) // Diubah ke Int
+  visitorId        Int      @map("visitor_id") // Diubah ke Int
+  recordedBy       Int      @map("recorded_by") // Diubah ke Int
+  examinationDate  DateTime @map("examination_date") @db.Date
+  weight           Decimal? @db.Decimal(5, 2)
+  height           Decimal? @db.Decimal(5, 2)
+  armCircumference Decimal? @map("arm_circumference") @db.Decimal(5, 2)
+  hb               Decimal? @db.Decimal(4, 2)
+  anemiaStatus     String?  @map("anemia_status") @db.VarChar(30)
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  visitor  Visitor @relation(fields: [visitorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  recorder User    @relation(fields: [recordedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+
+  @@unique([visitorId, examinationDate])
+  @@index([examinationDate])
+  @@index([recordedBy])
+  @@map("monitoring_remaja")
+}
+
+//////////////////////////////////////////////////////
+// MONITORING USIA PRODUKTIF
+//////////////////////////////////////////////////////
+
+model MonitoringUsiaProduktif {
+  id                 Int      @id @default(autoincrement()) // Diubah ke Int
+  visitorId          Int      @map("visitor_id") // Diubah ke Int
+  recordedBy         Int      @map("recorded_by") // Diubah ke Int
+  examinationDate    DateTime @map("examination_date") @db.Date
+  weight             Decimal? @db.Decimal(5, 2)
+  height             Decimal? @db.Decimal(5, 2)
+  bmi                Decimal? @db.Decimal(5, 2)
+  waistCircumference Decimal? @map("waist_circumference") @db.Decimal(5, 2)
+  systolicBP         Int?     @map("systolic_bp")
+  diastolicBP        Int?     @map("diastolic_bp")
+  bloodSugar         Decimal? @map("blood_sugar") @db.Decimal(5, 2)
+  cholesterol        Decimal? @db.Decimal(5, 2)
+  notes              String?
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  visitor  Visitor @relation(fields: [visitorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  recorder User    @relation(fields: [recordedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+
+  @@unique([visitorId, examinationDate])
+  @@index([examinationDate])
+  @@index([recordedBy])
+  @@map("monitoring_usia_produktif")
+}
+
+//////////////////////////////////////////////////////
+// MONITORING LANSIA
+//////////////////////////////////////////////////////
+
+model MonitoringLansia {
+  id              Int      @id @default(autoincrement()) // Diubah ke Int
+  visitorId       Int      @map("visitor_id") // Diubah ke Int
+  recordedBy      Int      @map("recorded_by") // Diubah ke Int
+  examinationDate DateTime @map("examination_date") @db.Date
+  weight          Decimal? @db.Decimal(5, 2)
+  systolicBP      Int?     @map("systolic_bp")
+  diastolicBP     Int?     @map("diastolic_bp")
+  bloodSugar      Decimal? @map("blood_sugar") @db.Decimal(5, 2)
+  cholesterol     Decimal? @db.Decimal(5, 2)
+  uricAcid        Decimal? @map("uric_acid") @db.Decimal(5, 2)
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  visitor  Visitor @relation(fields: [visitorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  recorder User    @relation(fields: [recordedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+
+  @@unique([visitorId, examinationDate])
+  @@index([examinationDate])
+  @@index([recordedBy])
+  @@map("monitoring_lansia")
+}
+
+//////////////////////////////////////////////////////
+// ATTENDANCE
+//////////////////////////////////////////////////////
+
+model Attendance {
+  id             Int              @id @default(autoincrement()) // Diubah ke Int
+  visitorId      Int              @map("visitor_id") // Diubah ke Int
+  recordedBy     Int?             @map("recorded_by") // Diubah ke Int?
+  sessionId      Int?             @map("session_id") // Sesi QR (jika absen via scan QR sesi)
+  attendanceDate DateTime         @map("attendance_date") @db.Date
+  attendanceTime DateTime         @map("attendance_time") @db.Time(6)
+  method         AttendanceMethod @default(QR)
+  status         AttendanceStatus @default(HADIR)
+  notes          String?
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  visitor  Visitor          @relation(fields: [visitorId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  recorder User?            @relation(fields: [recordedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  session  PosyanduSession? @relation(fields: [sessionId], references: [id], onUpdate: Cascade, onDelete: SetNull)
+
+  @@unique([visitorId, attendanceDate])
+  @@index([attendanceDate])
+  @@index([recordedBy])
+  @@index([sessionId])
+  @@map("attendances")
+}
+
+//////////////////////////////////////////////////////
+// POSYANDU SESSION (SESI ABSENSI QR)
+//////////////////////////////////////////////////////
+// Dibuat oleh Kader/Admin saat membuka sesi Posyandu hari itu.
+// Warga (role MASYARAKAT) memindai QR yang berisi `token` sesi ini
+// dari dasbor mereka untuk mencatat kehadiran secara mandiri.
+
+model PosyanduSession {
+  id          Int           @id @default(autoincrement())
+  sessionDate DateTime      @map("session_date") @db.Date
+  token       String        @unique @db.VarChar(64)
+  status      SessionStatus @default(OPEN)
+  openedBy    Int           @map("opened_by")
+  openedAt    DateTime      @default(now()) @map("opened_at")
+  closedAt    DateTime?     @map("closed_at")
+  expiresAt   DateTime?     @map("expires_at")
+  notes       String?
+
+  // Relasi Dua Arah
+  opener      User         @relation(fields: [openedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  attendances Attendance[]
+
+  @@index([sessionDate])
+  @@index([status])
+  @@index([openedBy])
+  @@map("posyandu_sessions")
+}
+
+//////////////////////////////////////////////////////
+// PRODUCT
+//////////////////////////////////////////////////////
+
+model Product {
+  id          Int      @id @default(autoincrement()) // Diubah ke Int
+  name        String   @db.VarChar(150)
+  description String?
+  price       Decimal  @db.Decimal(12, 2)
+  stock       Int      @default(0)
+  image       String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([name])
+  @@index([isActive])
+  @@map("products")
+}
+
+//////////////////////////////////////////////////////
+// DOCUMENTATION
+//////////////////////////////////////////////////////
+
+model Documentation {
+  id           Int       @id @default(autoincrement()) // Diubah ke Int
+  title        String    @db.VarChar(150)
+  description  String?
+  mediaType    MediaType @default(PHOTO) @map("media_type")
+  fileUrl      String    @map("file_url") @db.VarChar(255)
+  activityDate DateTime  @map("activity_date") @db.Date
+  uploadedBy   Int       @map("uploaded_by") // Diubah ke Int
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  uploader User @relation(fields: [uploadedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+
+  @@index([activityDate])
+  @@index([uploadedBy])
+  @@map("documentations")
+}
+
+//////////////////////////////////////////////////////
+// ARCHIVE
+//////////////////////////////////////////////////////
+
+model Archive {
+  id          Int      @id @default(autoincrement()) // Diubah ke Int
+  categoryId  Int      @map("category_id")
+  title       String   @db.VarChar(150)
+  description String?
+  fileUrl     String   @map("file_url") @db.VarChar(255)
+  uploadedBy  Int      @map("uploaded_by") // Diubah ke Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relasi Dua Arah
+  category ArchiveCategory @relation(fields: [categoryId], references: [id], onUpdate: Cascade, onDelete: Restrict)
+  uploader User            @relation(fields: [uploadedBy], references: [id], onUpdate: Cascade, onDelete: Restrict)
+
+  @@index([categoryId])
+  @@index([uploadedBy])
+  @@map("archives")
+}
+
+//////////////////////////////////////////////////////
+// PROFILE
+//////////////////////////////////////////////////////
+
+model Profile {
+  id Int @id @default(1)
+
+  organizationName String @map("organization_name") @db.VarChar(150)
+
+  tagline String? @db.VarChar(255)
+
+  vision String
+
+  mission String
+
+  history String?
+
+  address String
+
+  phone String? @db.VarChar(20)
+
+  email String? @db.VarChar(150)
+
+  mapsEmbed String? @map("maps_embed")
+
+  logo String? @db.VarChar(255)
+
+  heroImage String? @map("hero_image") @db.VarChar(255)
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("profiles")
+}
+
+//////////////////////////////////////////////////////
+// NEWSCATEGORY
+//////////////////////////////////////////////////////
+
+model NewsCategory {
+  id Int @id @default(autoincrement())
+
+  name String @unique @db.VarChar(100)
+
+  slug String @unique @db.VarChar(120)
+
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  news News[]
+
+  @@index([slug])
+  @@map("news_categories")
+}
+
+//////////////////////////////////////////////////////
+// NEWS
+//////////////////////////////////////////////////////
+
+model News {
+  id Int @id @default(autoincrement())
+
+  categoryId Int @map("category_id")
+
+  authorId Int @map("author_id")
+
+  title String @db.VarChar(255)
+
+  slug String @unique @db.VarChar(255)
+
+  excerpt String
+
+  content String
+
+  thumbnail String? @db.VarChar(255)
+
+  isPublished Boolean @default(false) @map("is_published")
+
+  publishedAt DateTime? @map("published_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  category NewsCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([slug])
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@index([authorId])
+  @@map("news")
+}
+
+//////////////////////////////////////////////////////
+// EVENT 
+//////////////////////////////////////////////////////
+
+model Event {
+  id Int @id @default(autoincrement())
+
+  title String @db.VarChar(200)
+
+  description String?
+
+  location String? @db.VarChar(255)
+
+  startDate DateTime @map("start_date")
+
+  endDate DateTime? @map("end_date")
+
+  image String? @db.VarChar(255)
+
+  isPublished Boolean @default(true) @map("is_published")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([startDate])
+  @@index([isPublished])
+  @@map("events")
+}
+
+//////////////////////////////////////////////////////
+// FAQ
+//////////////////////////////////////////////////////
+
+model FAQ {
+  id Int @id @default(autoincrement())
+
+  question String
+
+  answer String
+
+  order Int @default(0)
+
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([order])
+  @@index([isActive])
+  @@map("faqs")
+}
+
+//////////////////////////////////////////////////////
+// AUDIT LOG
+//////////////////////////////////////////////////////
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String   @db.VarChar(100)
+  userId    Int?     @map("user_id")
+  ipAddress String?  @map("ip_address") @db.VarChar(50)
+  details   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([action])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+//////////////////////////////////////////////////////
+// DISTRIBUTED RATE LIMIT (SUPABASE POSTGRES)
+//////////////////////////////////////////////////////
+
+model RateLimitBucket {
+  key       String   @id @db.VarChar(255)
+  count     Int      @default(0)
+  resetAt   DateTime @map("reset_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([resetAt])
+  @@map("rate_limit_buckets")
+}

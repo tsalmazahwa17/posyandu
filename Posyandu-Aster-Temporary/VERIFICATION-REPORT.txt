@@ -1,0 +1,38 @@
+POSYANDU ASTER — VERIFICATION REPORT
+Generated: 2026-08-01 (Asia/Jakarta)
+
+STATIC VERIFICATION
+- TypeScript/TSX syntax parser: PASS (159 files)
+- Next.js route conflict check: PASS (18 pages, 29 route handlers)
+- JavaScript/MJS syntax check: PASS
+- Cloud-only source audit: PASS
+- Prisma models/tables documented: 22
+- Prisma enums documented: 7
+- Migration files: 9
+- Realtime-trigger target tables: 21
+- Files removed from prior Supabase package: 0
+
+CLOUD ARCHITECTURE CHECKED IN SOURCE
+- Supabase Postgres via Prisma
+- Transaction Pooler runtime + Session Pooler/direct migration
+- Supabase Realtime Broadcast database triggers
+- Supabase Storage public/private buckets
+- Private archive signed URLs
+- RLS + revoked anon/authenticated table grants
+- Postgres distributed rate limiting
+- Dynamic/no-store data rendering
+- Production seed without health/content demo data
+- Optional PostgreSQL-local data migration path
+- General and per-person monitoring charts
+- URL ?id= auto-selects the person chart
+
+LIVE VERIFICATION STILL REQUIRED
+- A real Supabase project was not available in this task, so connection,
+  migration, bucket, signed URL, and two-device realtime tests could not be run.
+- Full npm install/build could not complete in the execution environment because
+  registry/network access timed out. No dependency was added to package.json.
+- Run `npm ci`, `npm run supabase:bootstrap`, `npm run dev`, and `npm run build`
+  on the administrator computer/CI with real credentials.
+
+PRIMARY SETUP GUIDE
+- SETUP-SUPABASE-STEP-BY-STEP.md
