@@ -82,8 +82,12 @@ export default function Sidebar({ user, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { contact } = useContactInfo();
 
-  const waNumber = contact?.phone?.replace(/\D/g, "");
-  const waLink = waNumber ? `https://wa.me/62${waNumber.replace(/^0/, "")}` : null;
+  const waMessage =
+    "Halo Admin Posyandu Aster, saya membutuhkan bantuan terkait layanan Posyandu Aster.";
+
+  const waLink = `https://wa.me/6285646519926?text=${encodeURIComponent(
+    waMessage
+  )}`;
 
   return (
     <>

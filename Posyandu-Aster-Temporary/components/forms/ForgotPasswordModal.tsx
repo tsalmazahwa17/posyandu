@@ -60,12 +60,12 @@ export default function ForgotPasswordModal({
 
   if (!isOpen) return null;
 
-  const waNumber = contact?.phone?.replace(/\D/g, "");
-  const waLink = waNumber
-    ? `https://wa.me/62${waNumber.replace(/^0/, "")}?text=${encodeURIComponent(
-        "Halo Admin Posyandu Aster, saya lupa kata sandi akun saya dan membutuhkan bantuan reset password.\n\nEmail akun saya: "
-      )}`
-    : null;
+  const waMessage =
+    "Halo Admin Posyandu Aster, saya lupa kata sandi akun saya dan membutuhkan bantuan reset password.\n\nEmail akun saya: ";
+
+  const waLink = `https://wa.me/6285646519926?text=${encodeURIComponent(
+    waMessage
+  )}`;
 
   const mailLink = contact?.email
     ? `mailto:${contact.email}?subject=${encodeURIComponent(
