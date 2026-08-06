@@ -22,9 +22,9 @@ function monthKey(date: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function avg(nums: (number | null | undefined)[]): number {
-  const valid = nums.filter((n): n is number => n !== null && n !== undefined && !isNaN(n));
-  if (valid.length === 0) return 0;
+function avg(nums: (number | null | undefined)[]): number | null {
+  const valid = nums.filter((n): n is number => n !== null && n !== undefined && !isNaN(n) && isFinite(n));
+  if (valid.length === 0) return null;
   const sum = valid.reduce((a, b) => a + b, 0);
   return Math.round((sum / valid.length) * 10) / 10;
 }

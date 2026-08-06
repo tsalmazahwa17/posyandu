@@ -40,12 +40,12 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
   if (!isOpen) return null;
 
-  const waNumber = contact?.phone?.replace(/\D/g, ""); // strip non-digits
-  const waLink = waNumber
-    ? `https://wa.me/62${waNumber.replace(/^0/, "")}?text=${encodeURIComponent(
-        "Halo Admin Posyandu Aster, saya ingin meminta pembuatan akun untuk sistem informasi digital."
-      )}`
-    : null;
+  const rawPhone = contact?.phone || "+62 856-4651-9926";
+  const waDigits = rawPhone.replace(/\D/g, "");
+  const waFormatted = waDigits.startsWith("0") ? "62" + waDigits.slice(1) : waDigits.startsWith("62") ? waDigits : "62" + waDigits;
+  const waLink = `https://wa.me/${waFormatted}?text=${encodeURIComponent(
+    "Halo Admin Posyandu Aster, saya ingin meminta pembuatan akun untuk sistem informasi digital."
+  )}`;
 
   const mailLink = contact?.email
     ? `mailto:${contact.email}?subject=${encodeURIComponent(

@@ -46,6 +46,7 @@ export interface AttendanceFilterParams {
   date?: string;
   categoryId?: number;
   sessionId?: number;
+  visitorId?: number;
 }
 
 // ─── QR SESSION (dibuka Kader, dipindai Warga/MASYARAKAT) ──────────────────

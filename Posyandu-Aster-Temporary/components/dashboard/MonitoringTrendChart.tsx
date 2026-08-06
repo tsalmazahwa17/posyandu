@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -23,7 +23,7 @@ import { MONITORING_CATEGORIES } from "@/lib/dashboard-data";
 interface CategoryTrendData {
   month: string;
   count: number;
-  [key: string]: string | number;
+  [key: string]: string | number | null;
 }
 
 interface Props {
@@ -246,6 +246,18 @@ export default function MonitoringTrendChart({ data, categories }: Props) {
   const [selectedCatId, setSelectedCatId] = useState<string>("lansia");
   const [selectedMetricIndex, setSelectedMetricIndex] = useState<number>(0);
 
+  // Build list of available months from all category data
+  const allMonths = useMemo(() => {
+    const months = new Set<string>();
+    Object.values(data).forEach((catData) =>
+      catData.forEach((d) => { if (d.month) months.add(d.month); })
+    );
+    return [...months]; // already sorted by server (sixMonthsAgo → today)
+  }, [data]);
+
+  const [fromMonth, setFromMonth] = useState<string>("");
+  const [toMonth, setToMonth] = useState<string>("");
+
   const activeCategory =
     categories.find((c) => c.id === selectedCatId) || categories[4];
   const metrics = METRIC_CONFIGS[selectedCatId] || METRIC_CONFIGS["lansia"];
@@ -257,12 +269,23 @@ export default function MonitoringTrendChart({ data, categories }: Props) {
   const categoryData: CategoryTrendData[] =
     data[selectedCatId as keyof typeof data] || data.lansia;
 
-  // Pastikan data bernilai angka valid
-  const chartData = categoryData.map((item) => {
-    const rawVal = Number(item[activeMetric.key] ?? 0);
+  // Filter by selected month range
+  const filteredData = useMemo(() => {
+    if (!fromMonth && !toMonth) return categoryData;
+    return categoryData.filter((item) => {
+      if (fromMonth && allMonths.indexOf(item.month) < allMonths.indexOf(fromMonth)) return false;
+      if (toMonth && allMonths.indexOf(item.month) > allMonths.indexOf(toMonth)) return false;
+      return true;
+    });
+  }, [categoryData, fromMonth, toMonth, allMonths]);
+
+  // Pastikan data bernilai angka valid — null if no data (so no false 0-lines)
+  const chartData = filteredData.map((item) => {
+    const rawVal = item[activeMetric.key];
+    const num = rawVal !== null && rawVal !== undefined ? Number(rawVal) : null;
     return {
       month: item.month,
-      value: rawVal > 0 ? rawVal : null,
+      value: (num !== null && num > 0) ? num : null,
       count: item.count,
     };
   });
@@ -270,7 +293,7 @@ export default function MonitoringTrendChart({ data, categories }: Props) {
   // Nilai rata-rata terkini (bulan terakhir yang ada data)
   const validDataPoints = chartData.filter((d) => d.value !== null && d.value > 0);
   const latestPoint = validDataPoints[validDataPoints.length - 1];
-  const latestValue = latestPoint?.value ?? 0;
+  const latestValue = latestPoint?.value ?? null;
 
   return (
     <div className="bg-white rounded-3xl border border-gray-200/80 shadow-sm p-6 lg:p-7 space-y-6">
@@ -315,30 +338,64 @@ export default function MonitoringTrendChart({ data, categories }: Props) {
         </div>
       </div>
 
-      {/* ── METRIC SELECTION PILLS (SESUAI DESAIN HP/MONITORING) ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-50/70 p-3 rounded-2xl border border-gray-100">
-        <div className="flex flex-wrap items-center gap-2">
-          {metrics.map((m, idx) => {
-            const isSelected = idx === safeMetricIndex;
-            return (
-              <button
-                key={m.key}
-                onClick={() => setSelectedMetricIndex(idx)}
-                className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  isSelected
-                    ? "bg-white text-blue-600 shadow-sm border border-blue-200/80 ring-2 ring-blue-500/20"
-                    : "text-gray-500 hover:text-gray-800 hover:bg-white/60"
-                }`}
-              >
-                {m.label}
-              </button>
-            );
-          })}
+      {/* ── METRIC SELECTION PILLS + DATE RANGE FILTER ── */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-50/70 p-3 rounded-2xl border border-gray-100">
+          <div className="flex flex-wrap items-center gap-2">
+            {metrics.map((m, idx) => {
+              const isSelected = idx === safeMetricIndex;
+              return (
+                <button
+                  key={m.key}
+                  onClick={() => setSelectedMetricIndex(idx)}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    isSelected
+                      ? "bg-white text-blue-600 shadow-sm border border-blue-200/80 ring-2 ring-blue-500/20"
+                      : "text-gray-500 hover:text-gray-800 hover:bg-white/60"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
+            <Users className="w-3.5 h-3.5 text-gray-400" />
+            <span>Kategori: <strong className="text-gray-700">{activeCategory.label}</strong></span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-          <Users className="w-3.5 h-3.5 text-gray-400" />
-          <span>Kategori: <strong className="text-gray-700">{activeCategory.label}</strong></span>
+        {/* Date range filter */}
+        <div className="flex flex-wrap items-center gap-3 bg-gray-50/70 p-3 rounded-2xl border border-gray-100">
+          <span className="text-xs font-semibold text-gray-600">Filter Rentang Bulan:</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={fromMonth}
+              onChange={(e) => setFromMonth(e.target.value)}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+            >
+              <option value="">Dari Bulan</option>
+              {allMonths.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+            <span className="text-xs text-gray-400">s/d</span>
+            <select
+              value={toMonth}
+              onChange={(e) => setToMonth(e.target.value)}
+              className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+            >
+              <option value="">Sampai Bulan</option>
+              {allMonths.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+            {(fromMonth || toMonth) && (
+              <button
+                onClick={() => { setFromMonth(""); setToMonth(""); }}
+                className="text-xs text-rose-500 hover:text-rose-700 font-semibold"
+              >
+                Reset
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -360,7 +417,7 @@ export default function MonitoringTrendChart({ data, categories }: Props) {
             {/* Current Average Stat Display */}
             <div className="text-right">
               <p className="text-2xl font-black text-slate-900 tracking-tight">
-                {latestValue > 0 ? latestValue.toLocaleString("id-ID") : "—"}{" "}
+                {latestValue !== null && latestValue > 0 ? latestValue.toLocaleString("id-ID") : "—"}{" "}
                 <span className="text-xs font-semibold text-gray-500">
                   {activeMetric.unit}
                 </span>
@@ -441,6 +498,7 @@ export default function MonitoringTrendChart({ data, categories }: Props) {
                   strokeWidth={3}
                   fillOpacity={1}
                   fill={`url(#${activeMetric.gradientId})`}
+                  connectNulls={false}
                   dot={{
                     r: 4.5,
                     fill: activeMetric.strokeColor,

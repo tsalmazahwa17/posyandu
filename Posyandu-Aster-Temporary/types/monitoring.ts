@@ -196,3 +196,10 @@ export interface CreateLansiaInput {
   uricAcid?: number | null;
   notes?: string | null;
 }
+
+export type UpdateBalitaInput = Partial<CreateBalitaInput>;
+export type UpdateIbuHamilInput = Partial<CreateIbuHamilInput>;
+export type UpdateRemajaInput = Partial<CreateRemajaInput>;
+export type UpdateUsiaProduktifInput = Partial<CreateUsiaProduktifInput>;
+export type UpdateLansiaInput = Partial<CreateLansiaInput>;
+

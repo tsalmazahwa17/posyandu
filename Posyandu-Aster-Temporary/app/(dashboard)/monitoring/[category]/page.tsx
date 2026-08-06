@@ -345,6 +345,7 @@ export default async function Page({
       title={module.title}
       description={module.description}
       metrics={module.metrics}
+      category={category}
       initialPersonId={initialPersonId}
       {...data}
     />

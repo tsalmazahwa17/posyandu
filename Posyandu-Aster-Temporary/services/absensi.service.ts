@@ -28,6 +28,14 @@ export class AbsensiService {
       where.attendanceDate = d;
     }
 
+    if (params.visitorId) {
+      where.visitorId = params.visitorId;
+    }
+
+    if (params.sessionId) {
+      where.sessionId = params.sessionId;
+    }
+
     const visitorWhere: Prisma.VisitorWhereInput = {};
 
     if (params.categoryId) {

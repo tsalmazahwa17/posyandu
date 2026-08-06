@@ -172,6 +172,27 @@ export async function POST(
             { status: 400 }
           );
         }
+        // Check duplicate date (same visitor + same date)
+        if (!body.forceNew) {
+          const { prisma } = await import("@/lib/prisma");
+          const existing = await prisma.monitoringBalita.findFirst({
+            where: {
+              visitorId: val.data.visitorId,
+              examinationDate: new Date(val.data.examinationDate),
+            },
+            select: { id: true, examinationDate: true },
+          });
+          if (existing) {
+            return NextResponse.json<ApiResponse>(
+              {
+                success: false,
+                error: "Sudah ada data pemeriksaan pada tanggal ini.",
+                data: { conflictId: existing.id, conflictDate: existing.examinationDate },
+              },
+              { status: 409 }
+            );
+          }
+        }
         createdRecord = await MonitoringService.createBalita(val.data, session.userId);
         break;
       }
@@ -184,6 +205,26 @@ export async function POST(
             { status: 400 }
           );
         }
+        if (!body.forceNew) {
+          const { prisma } = await import("@/lib/prisma");
+          const existing = await prisma.monitoringIbuHamil.findFirst({
+            where: {
+              visitorId: val.data.visitorId,
+              examinationDate: new Date(val.data.examinationDate),
+            },
+            select: { id: true, examinationDate: true },
+          });
+          if (existing) {
+            return NextResponse.json<ApiResponse>(
+              {
+                success: false,
+                error: "Sudah ada data pemeriksaan pada tanggal ini.",
+                data: { conflictId: existing.id, conflictDate: existing.examinationDate },
+              },
+              { status: 409 }
+            );
+          }
+        }
         createdRecord = await MonitoringService.createIbuHamil(val.data, session.userId);
         break;
       }
@@ -194,6 +235,26 @@ export async function POST(
             { success: false, error: val.error.issues[0]?.message || "Input tidak valid." },
             { status: 400 }
           );
+        }
+        if (!body.forceNew) {
+          const { prisma } = await import("@/lib/prisma");
+          const existing = await prisma.monitoringRemaja.findFirst({
+            where: {
+              visitorId: val.data.visitorId,
+              examinationDate: new Date(val.data.examinationDate),
+            },
+            select: { id: true, examinationDate: true },
+          });
+          if (existing) {
+            return NextResponse.json<ApiResponse>(
+              {
+                success: false,
+                error: "Sudah ada data pemeriksaan pada tanggal ini.",
+                data: { conflictId: existing.id, conflictDate: existing.examinationDate },
+              },
+              { status: 409 }
+            );
+          }
         }
         createdRecord = await MonitoringService.createRemaja(val.data, session.userId);
         break;
@@ -207,6 +268,26 @@ export async function POST(
             { status: 400 }
           );
         }
+        if (!body.forceNew) {
+          const { prisma } = await import("@/lib/prisma");
+          const existing = await prisma.monitoringUsiaProduktif.findFirst({
+            where: {
+              visitorId: val.data.visitorId,
+              examinationDate: new Date(val.data.examinationDate),
+            },
+            select: { id: true, examinationDate: true },
+          });
+          if (existing) {
+            return NextResponse.json<ApiResponse>(
+              {
+                success: false,
+                error: "Sudah ada data pemeriksaan pada tanggal ini.",
+                data: { conflictId: existing.id, conflictDate: existing.examinationDate },
+              },
+              { status: 409 }
+            );
+          }
+        }
         createdRecord = await MonitoringService.createUsiaProduktif(val.data, session.userId);
         break;
       }
@@ -217,6 +298,26 @@ export async function POST(
             { success: false, error: val.error.issues[0]?.message || "Input tidak valid." },
             { status: 400 }
           );
+        }
+        if (!body.forceNew) {
+          const { prisma } = await import("@/lib/prisma");
+          const existing = await prisma.monitoringLansia.findFirst({
+            where: {
+              visitorId: val.data.visitorId,
+              examinationDate: new Date(val.data.examinationDate),
+            },
+            select: { id: true, examinationDate: true },
+          });
+          if (existing) {
+            return NextResponse.json<ApiResponse>(
+              {
+                success: false,
+                error: "Sudah ada data pemeriksaan pada tanggal ini.",
+                data: { conflictId: existing.id, conflictDate: existing.examinationDate },
+              },
+              { status: 409 }
+            );
+          }
         }
         createdRecord = await MonitoringService.createLansia(val.data, session.userId);
         break;

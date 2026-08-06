@@ -30,8 +30,8 @@ export async function seedUsers(prisma: PrismaClient) {
 
   await prisma.user.upsert({
     where: { id: ADMIN_ID },
-    update: { fullName: "Administrator", email: "admin@posyanduaster.id", role: Role.ADMIN, isActive: true },
-    create: { id: ADMIN_ID, fullName: "Administrator", email: "admin@posyanduaster.id", password: adminPassword, role: Role.ADMIN, isActive: true, mustChangePassword: true },
+    update: { fullName: "Administrator", email: "nrl.azizah@gmail.com", role: Role.ADMIN, isActive: true },
+    create: { id: ADMIN_ID, fullName: "Administrator", email: "nrl.azizah@gmail.com", password: adminPassword, role: Role.ADMIN, isActive: true, mustChangePassword: true },
   });
 
   await prisma.user.upsert({

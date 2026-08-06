@@ -306,4 +306,75 @@ export class MonitoringService {
     });
     return record as unknown as MonitoringLansiaDTO;
   }
+
+  // ─── UPDATE & DELETE METHODS ─────────────────────────────────────────────
+  static async updateBalita(id: number, data: Prisma.MonitoringBalitaUpdateInput): Promise<MonitoringBalitaDTO> {
+    const record = await prisma.monitoringBalita.update({
+      where: { id },
+      data,
+      include: { visitor: { select: { id: true, fullName: true, nik: true } } },
+    });
+    return record as unknown as MonitoringBalitaDTO;
+  }
+
+  static async deleteBalita(id: number): Promise<boolean> {
+    await prisma.monitoringBalita.delete({ where: { id } });
+    return true;
+  }
+
+  static async updateIbuHamil(id: number, data: Prisma.MonitoringIbuHamilUpdateInput): Promise<MonitoringIbuHamilDTO> {
+    const record = await prisma.monitoringIbuHamil.update({
+      where: { id },
+      data,
+      include: { visitor: { select: { id: true, fullName: true, nik: true } } },
+    });
+    return record as unknown as MonitoringIbuHamilDTO;
+  }
+
+  static async deleteIbuHamil(id: number): Promise<boolean> {
+    await prisma.monitoringIbuHamil.delete({ where: { id } });
+    return true;
+  }
+
+  static async updateRemaja(id: number, data: Prisma.MonitoringRemajaUpdateInput): Promise<MonitoringRemajaDTO> {
+    const record = await prisma.monitoringRemaja.update({
+      where: { id },
+      data,
+      include: { visitor: { select: { id: true, fullName: true, nik: true } } },
+    });
+    return record as unknown as MonitoringRemajaDTO;
+  }
+
+  static async deleteRemaja(id: number): Promise<boolean> {
+    await prisma.monitoringRemaja.delete({ where: { id } });
+    return true;
+  }
+
+  static async updateUsiaProduktif(id: number, data: Prisma.MonitoringUsiaProduktifUpdateInput): Promise<MonitoringUsiaProduktifDTO> {
+    const record = await prisma.monitoringUsiaProduktif.update({
+      where: { id },
+      data,
+      include: { visitor: { select: { id: true, fullName: true, nik: true } } },
+    });
+    return record as unknown as MonitoringUsiaProduktifDTO;
+  }
+
+  static async deleteUsiaProduktif(id: number): Promise<boolean> {
+    await prisma.monitoringUsiaProduktif.delete({ where: { id } });
+    return true;
+  }
+
+  static async updateLansia(id: number, data: Prisma.MonitoringLansiaUpdateInput): Promise<MonitoringLansiaDTO> {
+    const record = await prisma.monitoringLansia.update({
+      where: { id },
+      data,
+      include: { visitor: { select: { id: true, fullName: true, nik: true } } },
+    });
+    return record as unknown as MonitoringLansiaDTO;
+  }
+
+  static async deleteLansia(id: number): Promise<boolean> {
+    await prisma.monitoringLansia.delete({ where: { id } });
+    return true;
+  }
 }

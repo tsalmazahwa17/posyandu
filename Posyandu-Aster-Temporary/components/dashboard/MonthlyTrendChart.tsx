@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -38,10 +38,24 @@ const CATEGORY_FILTERS = [
 export default function MonthlyTrendChart({ data }: Props) {
   const [selectedKey, setSelectedKey] = useState<string>("total");
 
+  const allMonths = useMemo(() => data.map((d) => d.month), [data]);
+  const [fromMonth, setFromMonth] = useState<string>("");
+  const [toMonth, setToMonth] = useState<string>("");
+
   const activeFilter =
     CATEGORY_FILTERS.find((f) => f.key === selectedKey) || CATEGORY_FILTERS[0];
 
-  const chartData = data.map((d) => ({
+  const filteredData = useMemo(() => {
+    if (!fromMonth && !toMonth) return data;
+    return data.filter((d) => {
+      const idx = allMonths.indexOf(d.month);
+      const fromIdx = fromMonth ? allMonths.indexOf(fromMonth) : 0;
+      const toIdx = toMonth ? allMonths.indexOf(toMonth) : allMonths.length - 1;
+      return idx >= fromIdx && idx <= toIdx;
+    });
+  }, [data, fromMonth, toMonth, allMonths]);
+
+  const chartData = filteredData.map((d) => ({
     month: d.month,
     count: Number(d[selectedKey as keyof MonthlyDataPoint] ?? d.total ?? 0),
   }));
@@ -65,23 +79,55 @@ export default function MonthlyTrendChart({ data }: Props) {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {CATEGORY_FILTERS.map((f) => {
             const isSelected = f.key === selectedKey;
             return (
               <button
                 key={f.key}
                 onClick={() => setSelectedKey(f.key)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                   isSelected
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200/70"
+                    ? "bg-white border-2 border-blue-200 text-blue-600 font-bold shadow-xs"
+                    : "text-gray-500 hover:text-blue-600 hover:bg-blue-50/40"
                 }`}
               >
                 {f.label}
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* Date Range Filter */}
+      <div className="flex flex-wrap items-center gap-3 bg-gray-50/70 px-4 py-2.5 rounded-xl border border-gray-100">
+        <span className="text-xs font-semibold text-gray-600">Filter Rentang Bulan:</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={fromMonth}
+            onChange={(e) => setFromMonth(e.target.value)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 outline-none focus:border-blue-400"
+          >
+            <option value="">Dari Bulan</option>
+            {allMonths.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <span className="text-xs text-gray-400">s/d</span>
+          <select
+            value={toMonth}
+            onChange={(e) => setToMonth(e.target.value)}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1 text-xs font-semibold text-gray-700 outline-none focus:border-blue-400"
+          >
+            <option value="">Sampai Bulan</option>
+            {allMonths.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          {(fromMonth || toMonth) && (
+            <button
+              onClick={() => { setFromMonth(""); setToMonth(""); }}
+              className="text-xs text-rose-500 hover:text-rose-700 font-semibold"
+            >
+              Reset
+            </button>
+          )}
         </div>
       </div>
 
@@ -127,6 +173,7 @@ export default function MonthlyTrendChart({ data }: Props) {
                 name={activeFilter.label}
                 stroke={activeFilter.color}
                 strokeWidth={2.5}
+                connectNulls={false}
                 dot={{ r: 4, fill: activeFilter.color, stroke: "#ffffff", strokeWidth: 2 }}
                 activeDot={{ r: 6, fill: activeFilter.color, stroke: "#ffffff", strokeWidth: 2 }}
               />

@@ -31,6 +31,21 @@ export async function GET(request: Request) {
     const categoryId = searchParams.get("categoryId")
       ? parseInt(searchParams.get("categoryId")!)
       : undefined;
+    const visitorIdParam = searchParams.get("visitorId")
+      ? parseInt(searchParams.get("visitorId")!)
+      : undefined;
+
+    let targetVisitorId: number | undefined = visitorIdParam;
+
+    if (session.role === "MASYARAKAT") {
+      if (!session.visitorId) {
+        return NextResponse.json<ApiResponse>({
+          success: true,
+          data: { items: [], total: 0, page: 1, limit, totalPages: 1 },
+        });
+      }
+      targetVisitorId = session.visitorId;
+    }
 
     const result = await AbsensiService.getAll({
       page,
@@ -38,6 +53,7 @@ export async function GET(request: Request) {
       search,
       date,
       categoryId,
+      visitorId: targetVisitorId,
     });
 
     return NextResponse.json<ApiResponse>({

@@ -96,18 +96,13 @@ export default function DokumentasiManagementView({ user }: Props) {
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-xs text-white">
-            <ImageIcon size={20} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-              Galeri Dokumentasi Kegiatan
-            </h1>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Arsip foto dan video pelaksaaan kegiatan posyandu dan penyuluhan masyarakat.
-            </p>
-          </div>
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">
+            Galeri Dokumentasi Kegiatan
+          </h1>
+          <p className="text-xs text-gray-400 mt-1">
+            Arsip foto dan video pelaksaaan kegiatan posyandu dan penyuluhan masyarakat.
+          </p>
         </div>
 
         {isOfficer && (

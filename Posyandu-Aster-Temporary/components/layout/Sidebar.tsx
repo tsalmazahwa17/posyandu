@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, LayoutDashboard, Users, QrCode, Baby, HeartPulse, GraduationCap, BriefcaseMedical, Accessibility, Newspaper, Package, Image as ImageIcon, FileText, UserCog, MessageCircle, CalendarCheck, ClipboardList } from "lucide-react";
+import { X, LayoutDashboard, Users, QrCode, Baby, HeartPulse, GraduationCap, BriefcaseMedical, Accessibility, Newspaper, Package, Image as ImageIcon, FileText, UserCog, MessageCircle, CalendarCheck, ClipboardList, CalendarDays } from "lucide-react";
 import { useContactInfo } from "@/hooks/useContactInfo";
 import type { SessionPayload } from "@/lib/session";
 
@@ -36,6 +36,7 @@ const menuSections: MenuSection[] = [
         href: "/absensi",
         allowedRoles: ["ADMIN", "KADER", "MASYARAKAT"],
       },
+      { title: "Jadwal Posyandu", icon: CalendarDays, href: "/jadwal", allowedRoles: ["ADMIN", "KADER", "MASYARAKAT"] },
     ],
   },
   {

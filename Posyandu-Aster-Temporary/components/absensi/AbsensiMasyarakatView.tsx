@@ -76,20 +76,16 @@ export default function AbsensiMasyarakatView({ user }: Props) {
   const fetchHistory = useCallback(async () => {
     setHistoryLoading(true);
     try {
-      const res = await fetch(`/api/absensi?limit=20`);
+      const res = await fetch(`/api/absensi?limit=50`);
       const json = await res.json();
-      const all: AttendanceDTO[] = json.data?.data ?? [];
-      // Filter hanya milik visitor yang terhubung ke user ini
-      const mine = user.visitorId
-        ? all.filter((a) => a.visitorId === user.visitorId)
-        : all;
-      setHistory(mine);
+      const items: AttendanceDTO[] = json.data?.items ?? json.data?.data ?? [];
+      setHistory(items);
     } catch {
       setHistory([]);
     } finally {
       setHistoryLoading(false);
     }
-  }, [user.visitorId]);
+  }, []);
 
   useEffect(() => {
     fetchActiveSession();
@@ -147,10 +143,19 @@ export default function AbsensiMasyarakatView({ user }: Props) {
     setScanStatus("idle");
     setScanMessage("");
     setScanResult(null);
+    stopCamera();
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+        });
+      } catch {
+        // Fallback constraint jika ideal environment ditolak
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      }
+
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -184,14 +189,14 @@ export default function AbsensiMasyarakatView({ user }: Props) {
         // Fallback: tampilkan instruksi input manual
         setShowManual(true);
       }
-    } catch {
+    } catch (err: unknown) {
       setScanStatus("error");
       setScanMessage(
-        "Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan, atau gunakan input manual."
+        "Kamera tidak dapat diakses atau diblokir browser. Silakan berikan izin kamera atau gunakan input manual di bawah."
       );
       setShowManual(true);
     }
-  }, [submitToken]);
+  }, [stopCamera, submitToken]);
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 

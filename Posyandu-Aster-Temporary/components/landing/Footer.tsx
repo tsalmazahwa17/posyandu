@@ -41,7 +41,7 @@ export default function Footer() {
 
             <div className="flex items-center gap-2 pt-1">
               <a
-                href="https://wa.me/6281234567890"
+                href="https://wa.me/6285646519926"
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:text-blue-600 flex items-center justify-center transition-colors"
@@ -59,7 +59,7 @@ export default function Footer() {
                 <Share2 className="w-4 h-4" />
               </a>
               <a
-                href="https://maps.google.com"
+                href="https://maps.app.goo.gl/WcqukfBndZsPDvG59?g_st=aw"
                 target="_blank"
                 rel="noreferrer"
                 className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-gray-600 hover:text-blue-600 flex items-center justify-center transition-colors"
@@ -90,15 +90,22 @@ export default function Footer() {
             <ul className="space-y-2 text-xs text-gray-500">
               <li className="flex items-start gap-2">
                 <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                <span>Jl. Aster Raya No. 12, Kel. Harapan Baru, Kecamatan Aster Sejahtera.</span>
+                <a
+                  href="https://maps.app.goo.gl/WcqukfBndZsPDvG59?g_st=aw"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-blue-600 transition"
+                >
+                  Jl. Aster Raya No. 12, Kel. Harapan Baru, Kecamatan Aster Sejahtera.
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span>+62 812-3456-7890</span>
+                <span>+62 856-4651-9926</span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span>info@posyanduaster.id</span>
+                <span>nrl.azizah@gmail.com</span>
               </li>
             </ul>
           </div>
